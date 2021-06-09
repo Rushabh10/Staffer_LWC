@@ -5,14 +5,26 @@ import getAllStaffers from '@salesforce/apex/getStaffersLWC.getAllStaffers';
 import { refreshApex } from '@salesforce/apex';
 import updateStaffers from '@salesforce/apex/getStaffersLWC.updateStaffers';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import STAFFER_NAME from '@salesforce/schema/Staffer__c.Name';
+import STAFFER_PHONE from '@salesforce/schema/Staffer__c.Phone_Number__c';
+import { NavigationMixin } from 'lightning/navigation';  
 
 
-export default class StafferDataTable extends LightningElement {
+export default class StafferDataTable extends NavigationMixin(LightningElement) {
     @track data;
     @track data_f;
-    @track columns = [ { label: 'Name', fieldName: 'Name', type: "text", sortable: "true", editable: true},
-                    { label: 'Phone Number', fieldName: 'Phone_Number__c',type: "phone", sortable: "true", editable: true},
-                    { label: 'Former', fieldName: 'Former__c', type: 'checkbox', sortable: "false"}];
+    @track columns = [ { label: 'Name', fieldName: 'Name', type: "text", sortable: "true"},
+                    { label: 'Phone Number', fieldName: 'Phone_Number__c',type: "phone", sortable: "true"},
+                    { label: 'Former', fieldName: 'Former__c', type: 'checkbox', sortable: "false"},
+                    { type: "button", typeAttributes: {
+                        label: 'Edit',
+                        name: 'Edit',
+                        title: 'Edit',
+                        disabled: false,
+                        value: 'edit',
+                        iconName: 'utility:edit',
+                        iconPosition: 'left'
+                    }}];
     @track sortBy;
     @track sortDirection;
     @track searchedData = [];
@@ -33,6 +45,12 @@ export default class StafferDataTable extends LightningElement {
     @api recordId;
     @track draftValues = [];
     @track recvData;
+    @api objectApiName;
+
+    @track stafferName = STAFFER_NAME;
+    @track stafferPhone = STAFFER_PHONE;
+    @track stafferId;
+    @track editOn = false;
 
     @wire(getAllStaffers, {recId: '$recordId'}) stafferRecords({error, data}) {
         if(data) {
@@ -51,6 +69,7 @@ export default class StafferDataTable extends LightningElement {
             this.totalPage = Math.ceil(this.totalRecountCount / this.pageSize);
             this.data = this.allData.slice(0, this.pageSize);
             this.endingRecord = this.pageSize;
+           // this.stafferId = data[0][0].Id;
         }
         else if(error) {
             this.data = undefined;
@@ -306,5 +325,37 @@ export default class StafferDataTable extends LightningElement {
     //             )
     //         });
     // }
+
+    handleSuccess() {
+        if(this.stafferId !== null) {
+            this.dispatchEvent(new ShowToastEvent({
+                title: 'Success',
+                message: 'Record has been edited.',
+                variant: 'success',
+            }),
+            );
+        }
+        window.location.reload();
+    }
+
+    handleRowAction(event) {
+        this.stafferId = event.detail.row.Id;
+        console.log(this.stafferId);
+        this.editOn = true;
+        // const actionName = event.detail.action.name;
+        // //console.log(actionName)
+        // if(actionName === 'Edit') {
+        //     console.log("In if statement");
+        //     this[NavigationMixin.Navigate] ({
+        //         type: 'standard__recordpage',
+        //         attributes: {
+        //             recordId: rowId,
+        //             objectApiName: 'Staffer__c',
+        //             actionName: 'edit'
+        //     }})
+            
+        // }
+
+    }
 }
 
