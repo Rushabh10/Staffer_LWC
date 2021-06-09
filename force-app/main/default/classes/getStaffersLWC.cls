@@ -34,6 +34,13 @@ public with sharing class getStaffersLWC {
         update staffer_list;
         return 'Success: Staffer(s) updated successfully';
     }
+
+    // @AuraEnabled(cacheable=true)
+    // public static void deleteStaffer(Object data, String recId){
+    //     List<Staffer__c> staffersList = [SELECT Id, Name, Phone_Number__c, Former__c FROM Staffer__c WHERE Id = :recId];        
+    //     delete staffer_list;
+    //     //return 'Success: Staffer(s) updated successfully';
+    // }
 }
 
 

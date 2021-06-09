@@ -3,11 +3,11 @@ import getStaffers from '@salesforce/apex/getStaffersLWC.getStaffers';
 import getFormerStaffers from '@salesforce/apex/getStaffersLWC.getFormerStaffers';
 import getAllStaffers from '@salesforce/apex/getStaffersLWC.getAllStaffers';
 import { refreshApex } from '@salesforce/apex';
-import updateStaffers from '@salesforce/apex/getStaffersLWC.updateStaffers';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import STAFFER_NAME from '@salesforce/schema/Staffer__c.Name';
 import STAFFER_PHONE from '@salesforce/schema/Staffer__c.Phone_Number__c';
 import { NavigationMixin } from 'lightning/navigation';  
+import { deleteRecord } from 'lightning/uiRecordApi';
 
 
 export default class StafferDataTable extends NavigationMixin(LightningElement) {
@@ -17,12 +17,19 @@ export default class StafferDataTable extends NavigationMixin(LightningElement) 
                     { label: 'Phone Number', fieldName: 'Phone_Number__c',type: "phone", sortable: "true"},
                     { label: 'Former', fieldName: 'Former__c', type: 'checkbox', sortable: "false"},
                     { type: "button", typeAttributes: {
-                        label: 'Edit',
                         name: 'Edit',
                         title: 'Edit',
                         disabled: false,
                         value: 'edit',
                         iconName: 'utility:edit',
+                        iconPosition: 'left'
+                    }},
+                    { type: "button", typeAttributes: {
+                        name: 'Delete',
+                        title: 'Delete',
+                        disabled: false,
+                        value: 'delete',
+                        iconName: 'utility:delete',
                         iconPosition: 'left'
                     }}];
     @track sortBy;
@@ -326,6 +333,7 @@ export default class StafferDataTable extends NavigationMixin(LightningElement) 
     //         });
     // }
 
+
     handleSuccess() {
         if(this.stafferId !== null) {
             this.dispatchEvent(new ShowToastEvent({
@@ -339,9 +347,32 @@ export default class StafferDataTable extends NavigationMixin(LightningElement) 
     }
 
     handleRowAction(event) {
-        this.stafferId = event.detail.row.Id;
-        console.log(this.stafferId);
-        this.editOn = true;
+        if(event.detail.action.name == 'Edit')
+        {
+            if(this.stafferId === event.detail.row.Id) {
+                this.editOn = !this.editOn;
+            }
+            else {
+                this.stafferId = event.detail.row.Id;
+                console.log(this.stafferId);
+                this.editOn = true;
+            }
+        }
+        else {
+            this.stafferId = event.detail.row.Id;
+            deleteRecord(this.stafferId)
+                .then(() => {
+                    console.log("In the then section");
+                    this.dispatchEvent(new ShowToastEvent({
+                        title: 'Success',
+                        message: 'Record has been deletd.',
+                        variant: 'success',
+                    }),
+                    );
+                    window.location.reload();
+                });
+                
+        }
         // const actionName = event.detail.action.name;
         // //console.log(actionName)
         // if(actionName === 'Edit') {
