@@ -1,14 +1,17 @@
 import {LightningElement, wire, track, api} from 'lwc';
 import getStaffers from '@salesforce/apex/getStaffersLWC.getStaffers';
 import getFormerStaffers from '@salesforce/apex/getStaffersLWC.getFormerStaffers';
+import getAllStaffers from '@salesforce/apex/getStaffersLWC.getAllStaffers';
 import { refreshApex } from '@salesforce/apex';
+import updateStaffers from '@salesforce/apex/getStaffersLWC.updateStaffers';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
 
 export default class StafferDataTable extends LightningElement {
     @track data;
     @track data_f;
-    @track columns = [ { label: 'Name', fieldName: 'Name', type: "text", sortable: "true"},
-                    { label: 'Phone Number', fieldName: 'Phone_Number__c',type: "phone", sortable: "true"},
+    @track columns = [ { label: 'Name', fieldName: 'Name', type: "text", sortable: "true", editable: true},
+                    { label: 'Phone Number', fieldName: 'Phone_Number__c',type: "phone", sortable: "true", editable: true},
                     { label: 'Former', fieldName: 'Former__c', type: 'checkbox', sortable: "false"}];
     @track sortBy;
     @track sortDirection;
@@ -28,47 +31,80 @@ export default class StafferDataTable extends LightningElement {
     @track totalPage_f = 0;
     @track page_f = 1;
     @api recordId;
+    @track draftValues = [];
+    @track recvData;
 
-    // @wire(getFormerStaffers) stafferRecords({error, data}) {
+    @wire(getAllStaffers, {recId: '$recordId'}) stafferRecords({error, data}) {
+        if(data) {
+            this.searchedData_f = data[1];
+            console.log("Got former staffers");
+            this.allData_f = data[1];
+            this.totalRecountCount_f = data[1].length;
+            this.totalPage_f = Math.ceil(this.totalRecountCount_f / this.pageSize);
+            this.data_f = this.allData_f.slice(0, this.pageSize);
+            this.endingRecord_f = this.pageSize;
+            console.log("Got staffers");
+            this.searchedData = data[0];
+            this.recvData = data[0];
+            this.allData = data[0];
+            this.totalRecountCount = data[0].length;
+            this.totalPage = Math.ceil(this.totalRecountCount / this.pageSize);
+            this.data = this.allData.slice(0, this.pageSize);
+            this.endingRecord = this.pageSize;
+        }
+        else if(error) {
+            this.data = undefined;
+        }
+    }
+
+
+    // @wire(getStaffers, {recId: '$recordId'}) stafferRecords({error, data}) {
     //     if(data) {
-    //         this.data = data;
-    //         this.searchedData = data;
+            // console.log("Got staffers");
+            // this.searchedData = data;
+            // this.recvData = data;
+            // this.allData = data;
+            // this.totalRecountCount = data.length;
+            // this.totalPage = Math.ceil(this.totalRecountCount / this.pageSize);
+            // this.data = this.allData.slice(0, this.pageSize);
+            // this.endingRecord = this.pageSize;
     //     }
     //     else if(error) {
     //         this.data = undefined;
     //     }
     // }
 
-    connectedCallback() {
-        console.log(this.recordId);
-        getStaffers({"recId": this.recordId})
-            .then((result) => {
-                console.log(this.recordId);
-                this.searchedData = result;
-                this.allData = result;
-                this.totalRecountCount = result.length;
-                this.totalPage = Math.ceil(this.totalRecountCount / this.pageSize);
-                this.data = this.allData.slice(0, this.pageSize);
-                this.endingRecord = this.pageSize;
-            })
-            .catch((error) => {
-                console.log("Error");
-                this.data = undefined;
-            })
-            getFormerStaffers({"recId": this.recordId})
-            .then((result) => {
-                this.searchedData_f = result;
-                this.allData_f = result;
-                this.totalRecountCount_f = result.length;
-                this.totalPage_f = Math.ceil(this.totalRecountCount_f / this.pageSize);
-                this.data_f = this.allData_f.slice(0, this.pageSize);
-                this.endingRecord_f = this.pageSize;
-            })
-            .catch((error) => {
-                console.log("Error");
-                this.data_f = undefined;
-            })
-    }
+    // connectedCallback() {
+    //     console.log(this.recordId);
+    //     getStaffers({"recId": this.recordId})
+    //         .then((result) => {
+    //             console.log(this.recordId);
+    //             this.searchedData = result;
+    //             this.recvData = result;
+    //             this.allData = result;
+    //             this.totalRecountCount = result.length;
+    //             this.totalPage = Math.ceil(this.totalRecountCount / this.pageSize);
+    //             this.data = this.allData.slice(0, this.pageSize);
+    //             this.endingRecord = this.pageSize;
+    //         })
+    //         .catch((error) => {
+    //             console.log("Error");
+    //             this.data = undefined;
+    //         })
+    //         getFormerStaffers({"recId": this.recordId})
+    //         .then((result) => {
+    //             this.searchedData_f = result;
+    //             this.allData_f = result;
+    //             this.totalRecountCount_f = result.length;
+    //             this.totalPage_f = Math.ceil(this.totalRecountCount_f / this.pageSize);
+    //             this.data_f = this.allData_f.slice(0, this.pageSize);
+    //             this.endingRecord_f = this.pageSize;
+    //         })
+    //         .catch((error) => {
+    //             console.log("Error");
+    //             this.data_f = undefined;
+    //         })
+    // }
 
     doSorting(event) {
         this.sortBy = event.detail.fieldName; // find out what field was clicked so we know what to sort by
@@ -241,5 +277,34 @@ export default class StafferDataTable extends LightningElement {
             this.startingRecord_f = this.startingRecord_f+1;
         }
     }
+
+    // async handleSave(event) {
+    //     const updatedFields = event.detail.draftValues;
+
+    //     await updateStaffers({ data: updatedFields})
+    //         .then(result => {
+    //             console.log(JSON.stringify("Apex update result: " + result));
+    //             this.dispatchEvent(
+    //                 new ShowToastEvent({
+    //                     title: 'Success',
+    //                     message: 'Staffer(s) updated',
+    //                     variant: 'success'
+    //                 })
+    //             );
+
+    //             refreshApex(this.recvData).then(() => {
+    //                 this.draftValues = [];
+    //                 console.log("Done the refresh apex part");
+    //             });
+    //         }).catch(error => {
+    //             this.dispatchEvent(
+    //                 new ShowToastEvent({
+    //                     title: 'Error updating records',
+    //                     message: 'error message',
+    //                     variant: 'error'
+    //                 })
+    //             )
+    //         });
+    // }
 }
 
