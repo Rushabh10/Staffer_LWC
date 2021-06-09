@@ -1,0 +1,60 @@
+<template>
+    <lightning-card title="Staffers" icon-name="standard:contact" >
+        <br/>
+        <div style="width: auto;">
+            <template if:true={data}>
+                <lightning-input id="search_s" type="text" label="Search" onchange={searchDataTable} ></lightning-input>
+                <lightning-datatable id="dt_s" 
+                                     data={data}
+                                     columns={columns}
+                                     sorted-by={sortBy}
+                                     sorted-direction={sortDirection}
+                                     onsort={doSorting}
+                                     key-field="Id"></lightning-datatable>
+            </template>
+            </br>
+            <lightning-layout horizontal-align="space">
+                <lightning-layout-item flexibility="auto">
+                    <lightning-button id="prev_s" label="Previous" icon-name="utility:chevronleft" onclick={previousHandler}>
+                    </lightning-button>
+                </lightning-layout-item>
+                <lightning-layout-item flexibility="auto">
+                    Page {page} of {totalPage}
+                </lightning-layout-item>
+                <lightning-layout-item flexibility="auto">
+                    <lightning-button id="next_s" label="Next" icon-name="utility:chevronright" icon-position="right"
+                        onclick={nextHandler}></lightning-button>
+                </lightning-layout-item>
+            </lightning-layout>
+        </div>
+    </lightning-card>
+    <lightning-card title="Former Staffers" icon-name="standard:contact" >
+        <br/>
+        <div style="width: auto;">
+            <template if:true={data_f}>
+                <lightning-input id="search_f" type="text" label="Search" onchange={searchDataTable} ></lightning-input>
+                <lightning-datatable id="dt_f"
+                                     data={data_f}
+                                     columns={columns}
+                                     sorted-by={sortBy}
+                                     sorted-direction={sortDirection}
+                                     onsort={doSorting}
+                                     key-field="Id"></lightning-datatable>
+            </template>
+            </br>
+            <lightning-layout horizontal-align="space">
+                <lightning-layout-item flexibility="auto">
+                    <lightning-button id="prev_f" label="Previous" icon-name="utility:chevronleft" onclick={previousHandler}>
+                    </lightning-button>
+                </lightning-layout-item>
+                <lightning-layout-item flexibility="auto">
+                    Page {page_f} of {totalPage_f}
+                </lightning-layout-item>
+                <lightning-layout-item flexibility="auto">
+                    <lightning-button id="next_f" label="Next" icon-name="utility:chevronright" icon-position="right"
+                        onclick={nextHandler}></lightning-button>
+                </lightning-layout-item>
+            </lightning-layout>
+        </div>
+    </lightning-card>
+</template>
