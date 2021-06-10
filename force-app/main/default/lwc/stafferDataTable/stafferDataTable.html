@@ -3,7 +3,7 @@
         <br/>
         <div style="width: auto;">
             <template if:true={data}>
-                <lightning-input id="search_s" type="text" label="Search" onchange={searchDataTable} style="width:35%"></lightning-input>
+                <lightning-input id="search_s" type="text" label="Search" onchange={searchDataTable} style="width:35%; left:580px"></lightning-input>
                 <lightning-datatable id="dt_s" 
                                      data={data}
                                      columns={columns}
@@ -36,7 +36,7 @@
         <br/>
         <div style="width: auto;">
             <template if:true={data_f}>
-                <lightning-input id="search_f" type="text" label="Search" onchange={searchDataTable} style="width:35%"></lightning-input>
+                <lightning-input id="search_f" type="text" label="Search" onchange={searchDataTable} style="width:35%; left:580px"></lightning-input>
                 <lightning-datatable id="dt_f"
                                      data={data_f}
                                      columns={columns}
@@ -67,14 +67,13 @@
         <lightning-card title="Record Edit form Staffer Details">
             <lightning-layout>
                 <lightning-layout-item>
-                    <lightning-record-edit-form
+                    <lightning-record-form
                     object-api-name="Staffer__c"
-                    onsuccess={handleSuccess}
-                    record-id={stafferId}>
-                <lightning-input-field field-name={stafferName}></lightning-input-field> 
-                <lightning-input-field field-name={stafferPhone}></lightning-input-field>
-                <lightning-button variant="brand" type="submit" name="save" label="Save"></lightning-button>
-                    </lightning-record-edit-form>
+                    onsubmit={handleSuccess}
+                    record-id={stafferId}
+                    mode="edit"
+                    fields={fields}>
+                    </lightning-record-form>
                 </lightning-layout-item>
             </lightning-layout>
         </lightning-card> 

@@ -16,21 +16,21 @@ export default class StafferDataTable extends NavigationMixin(LightningElement) 
     @track columns = [ { label: 'Name', fieldName: 'Name', type: "text", sortable: "true"},
                     { label: 'Phone Number', fieldName: 'Phone_Number__c',type: "phone", sortable: "true"},
                     { label: 'Former', fieldName: 'Former__c', type: 'checkbox', sortable: "false"},
-                    { type: "button", typeAttributes: {
+                    { type: "button", initialWidth: 75, typeAttributes: {
                         name: 'Edit',
                         title: 'Edit',
                         disabled: false,
                         value: 'edit',
                         iconName: 'utility:edit',
-                        iconPosition: 'left'
+                        iconPosition: 'center'
                     }},
-                    { type: "button", typeAttributes: {
+                    { type: "button", initialWidth: 75, typeAttributes: {
                         name: 'Delete',
                         title: 'Delete',
                         disabled: false,
                         value: 'delete',
                         iconName: 'utility:delete',
-                        iconPosition: 'left'
+                        iconPosition: 'center'
                     }}];
     @track sortBy;
     @track sortDirection;
@@ -58,6 +58,7 @@ export default class StafferDataTable extends NavigationMixin(LightningElement) 
     @track stafferPhone = STAFFER_PHONE;
     @track stafferId;
     @track editOn = false;
+    @track fields = [STAFFER_NAME, STAFFER_PHONE];
 
     @wire(getAllStaffers, {recId: '$recordId'}) stafferRecords({error, data}) {
         if(data) {
@@ -334,16 +335,44 @@ export default class StafferDataTable extends NavigationMixin(LightningElement) 
     // }
 
 
-    handleSuccess() {
-        if(this.stafferId !== null) {
-            this.dispatchEvent(new ShowToastEvent({
-                title: 'Success',
-                message: 'Record has been edited.',
-                variant: 'success',
-            }),
-            );
+    handleSuccess(event) {
+        event.preventDefault();
+        let fields = event.detail.fields;
+        if(fields.Name === '' || fields.Name === null) {
+            if(this.stafferId !== null) {
+                this.dispatchEvent(new ShowToastEvent({
+                    title: 'Error',
+                    message: 'Please enter a name',
+                    variant: 'error',
+                }),
+                );
+            }   
         }
-        window.location.reload();
+        else {
+            if(isNaN(fields.Phone_Number__c) === false || (fields.Phone_Number__c === '' || fields.Phone_Number__c === null))
+            {
+                if(this.stafferId !== null) {
+                    this.template.querySelector('lightning-record-form').submit(fields);
+                    this.dispatchEvent(new ShowToastEvent({
+                        title: 'Success',
+                        message: 'Record has been edited.',
+                        variant: 'success',
+                    }),
+                    );
+                }
+                window.location.reload();
+            }
+            else {
+                if(this.stafferId !== null) {
+                    this.dispatchEvent(new ShowToastEvent({
+                        title: 'Error',
+                        message: 'Phone Number has to be a number',
+                        variant: 'error',
+                    }),
+                    );
+                }
+            }
+        }
     }
 
     handleRowAction(event) {
