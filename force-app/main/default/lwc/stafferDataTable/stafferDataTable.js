@@ -62,6 +62,7 @@ export default class StafferDataTable extends NavigationMixin(LightningElement) 
 
     @wire(getAllStaffers, {recId: '$recordId'}) stafferRecords({error, data}) {
         if(data) {
+            console.log(data);
             this.searchedData_f = data[1];
             console.log("Got former staffers");
             this.allData_f = data[1];
