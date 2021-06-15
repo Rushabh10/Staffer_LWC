@@ -1,11 +1,10 @@
 import {LightningElement, wire, track, api} from 'lwc';
-import getStaffers from '@salesforce/apex/getStaffersLWC.getStaffers';
-import getFormerStaffers from '@salesforce/apex/getStaffersLWC.getFormerStaffers';
 import getAllStaffers from '@salesforce/apex/getStaffersLWC.getAllStaffers';
-import { refreshApex } from '@salesforce/apex';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import STAFFER_NAME from '@salesforce/schema/Staffer__c.Name';
 import STAFFER_PHONE from '@salesforce/schema/Staffer__c.Phone_Number__c';
+import STAFFER_FORMER from '@salesforce/schema/Staffer__c.Former__c';
+import STAFFER_CONTACT from '@salesforce/schema/Staffer__c.Contact__c';
 import { NavigationMixin } from 'lightning/navigation';  
 import { deleteRecord } from 'lightning/uiRecordApi';
 
@@ -56,9 +55,15 @@ export default class StafferDataTable extends NavigationMixin(LightningElement) 
 
     @track stafferName = STAFFER_NAME;
     @track stafferPhone = STAFFER_PHONE;
+    @track stafferFormer = STAFFER_FORMER;
+    @track stafferContact = STAFFER_CONTACT;
     @track stafferId;
     @track editOn = false;
-    @track fields = [STAFFER_NAME, STAFFER_PHONE];
+    @track fields = [STAFFER_NAME, STAFFER_PHONE, STAFFER_FORMER, STAFFER_CONTACT];
+    @track openModal = false;
+    @track stafferEmpty = false;
+    @track formerEmpty = false;
+    @track openModalNew = false;
 
     @wire(getAllStaffers, {recId: '$recordId'}) stafferRecords({error, data}) {
         if(data) {
@@ -84,55 +89,6 @@ export default class StafferDataTable extends NavigationMixin(LightningElement) 
             this.data = undefined;
         }
     }
-
-
-    // @wire(getStaffers, {recId: '$recordId'}) stafferRecords({error, data}) {
-    //     if(data) {
-            // console.log("Got staffers");
-            // this.searchedData = data;
-            // this.recvData = data;
-            // this.allData = data;
-            // this.totalRecountCount = data.length;
-            // this.totalPage = Math.ceil(this.totalRecountCount / this.pageSize);
-            // this.data = this.allData.slice(0, this.pageSize);
-            // this.endingRecord = this.pageSize;
-    //     }
-    //     else if(error) {
-    //         this.data = undefined;
-    //     }
-    // }
-
-    // connectedCallback() {
-    //     console.log(this.recordId);
-    //     getStaffers({"recId": this.recordId})
-    //         .then((result) => {
-    //             console.log(this.recordId);
-    //             this.searchedData = result;
-    //             this.recvData = result;
-    //             this.allData = result;
-    //             this.totalRecountCount = result.length;
-    //             this.totalPage = Math.ceil(this.totalRecountCount / this.pageSize);
-    //             this.data = this.allData.slice(0, this.pageSize);
-    //             this.endingRecord = this.pageSize;
-    //         })
-    //         .catch((error) => {
-    //             console.log("Error");
-    //             this.data = undefined;
-    //         })
-    //         getFormerStaffers({"recId": this.recordId})
-    //         .then((result) => {
-    //             this.searchedData_f = result;
-    //             this.allData_f = result;
-    //             this.totalRecountCount_f = result.length;
-    //             this.totalPage_f = Math.ceil(this.totalRecountCount_f / this.pageSize);
-    //             this.data_f = this.allData_f.slice(0, this.pageSize);
-    //             this.endingRecord_f = this.pageSize;
-    //         })
-    //         .catch((error) => {
-    //             console.log("Error");
-    //             this.data_f = undefined;
-    //         })
-    // }
 
     doSorting(event) {
         this.sortBy = event.detail.fieldName; // find out what field was clicked so we know what to sort by
@@ -202,11 +158,21 @@ export default class StafferDataTable extends NavigationMixin(LightningElement) 
                     searchResults.push(allRecords[i]);
                 }
             }
+            if(searchResults.length == 0) {
+                this.stafferEmpty = true;
+                console.log("no records found");
+            }
+            else {
+                this.stafferEmpty = false;
+            }
             console.log(searchResults);
             this.searchedData = searchResults;
             this.totalRecountCount = searchResults.length;
             this.page = 1;
             this.totalPage = Math.ceil(this.totalRecountCount / this.pageSize);
+            if(this.totalPage == 0) {
+                this.page = 0;
+            }
             this.startingRecord = 1;
             console.log('till here 1');
             this.endingRecord = this.pageSize;
@@ -233,10 +199,20 @@ export default class StafferDataTable extends NavigationMixin(LightningElement) 
                 }
             }
             console.log(searchResults);
+            if(searchResults.length == 0) {
+                this.formerEmpty = true;
+                console.log("no records found");
+            }
+            else {
+                this.formerEmpty = false;
+            }
             this.searchedData_f = searchResults;
             this.totalRecountCount_f = searchResults.length;
             this.page_f = 1;
             this.totalPage_f = Math.ceil(this.totalRecountCount_f / this.pageSize);
+            if(this.totalPage_f == 0) {
+                this.page_f = 0;
+            }
             this.startingRecord_f = 1;
             console.log('till here 1 former');
             this.endingRecord_f = this.pageSize;
@@ -306,36 +282,6 @@ export default class StafferDataTable extends NavigationMixin(LightningElement) 
         }
     }
 
-    // async handleSave(event) {
-    //     const updatedFields = event.detail.draftValues;
-
-    //     await updateStaffers({ data: updatedFields})
-    //         .then(result => {
-    //             console.log(JSON.stringify("Apex update result: " + result));
-    //             this.dispatchEvent(
-    //                 new ShowToastEvent({
-    //                     title: 'Success',
-    //                     message: 'Staffer(s) updated',
-    //                     variant: 'success'
-    //                 })
-    //             );
-
-    //             refreshApex(this.recvData).then(() => {
-    //                 this.draftValues = [];
-    //                 console.log("Done the refresh apex part");
-    //             });
-    //         }).catch(error => {
-    //             this.dispatchEvent(
-    //                 new ShowToastEvent({
-    //                     title: 'Error updating records',
-    //                     message: 'error message',
-    //                     variant: 'error'
-    //                 })
-    //             )
-    //         });
-    // }
-
-
     handleSuccess(event) {
         event.preventDefault();
         let fields = event.detail.fields;
@@ -356,12 +302,14 @@ export default class StafferDataTable extends NavigationMixin(LightningElement) 
                     this.template.querySelector('lightning-record-form').submit(fields);
                     this.dispatchEvent(new ShowToastEvent({
                         title: 'Success',
-                        message: 'Record has been edited.',
+                        message: 'Changes saved.',
                         variant: 'success',
                     }),
                     );
                 }
-                window.location.reload();
+                this.openModal = false;
+                this.openModalNew = false;
+                //location.reload();
             }
             else {
                 if(this.stafferId !== null) {
@@ -376,16 +324,30 @@ export default class StafferDataTable extends NavigationMixin(LightningElement) 
         }
     }
 
+    closeModal() {
+        this.openModal = false;
+        this.openModalNew = false;
+    }
+
+    newRecord() {
+        this.openModalNew = true;
+        console.log(true);
+    }
+
     handleRowAction(event) {
         if(event.detail.action.name == 'Edit')
         {
             if(this.stafferId === event.detail.row.Id) {
-                this.editOn = !this.editOn;
+                //this.editOn = !this.editOn;
+                this.openModal = true;
+                console.log(this.openModal);
             }
             else {
                 this.stafferId = event.detail.row.Id;
                 console.log(this.stafferId);
-                this.editOn = true;
+                //this.editOn = true;
+                this.openModal = true;
+                console.log(this.openModal);
             }
         }
         else {
@@ -399,24 +361,11 @@ export default class StafferDataTable extends NavigationMixin(LightningElement) 
                         variant: 'success',
                     }),
                     );
-                    window.location.reload();
+                    this.openModal = false;
+                    //location.reload();
                 });
                 
         }
-        // const actionName = event.detail.action.name;
-        // //console.log(actionName)
-        // if(actionName === 'Edit') {
-        //     console.log("In if statement");
-        //     this[NavigationMixin.Navigate] ({
-        //         type: 'standard__recordpage',
-        //         attributes: {
-        //             recordId: rowId,
-        //             objectApiName: 'Staffer__c',
-        //             actionName: 'edit'
-        //     }})
-            
-        // }
-
     }
 }
 
