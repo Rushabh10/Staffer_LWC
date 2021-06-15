@@ -64,6 +64,7 @@ export default class StafferDataTable extends NavigationMixin(LightningElement) 
     @track stafferEmpty = false;
     @track formerEmpty = false;
     @track openModalNew = false;
+    @track deleteModal = false;
 
     @wire(getAllStaffers, {recId: '$recordId'}) stafferRecords({error, data}) {
         if(data) {
@@ -327,11 +328,28 @@ export default class StafferDataTable extends NavigationMixin(LightningElement) 
     closeModal() {
         this.openModal = false;
         this.openModalNew = false;
+        this.deleteModal = false;
     }
 
     newRecord() {
         this.openModalNew = true;
         console.log(true);
+    }
+
+    confirmDelete() {
+        deleteRecord(this.stafferId)
+        .then(() => {
+            console.log("In the then section");
+            this.dispatchEvent(new ShowToastEvent({
+                title: 'Success',
+                message: 'Record has been deletd.',
+                variant: 'success',
+            }),
+            );
+            this.openModal = false;
+            this.deleteModal = false;
+            location.reload();
+        });
     }
 
     handleRowAction(event) {
@@ -352,19 +370,7 @@ export default class StafferDataTable extends NavigationMixin(LightningElement) 
         }
         else {
             this.stafferId = event.detail.row.Id;
-            deleteRecord(this.stafferId)
-                .then(() => {
-                    console.log("In the then section");
-                    this.dispatchEvent(new ShowToastEvent({
-                        title: 'Success',
-                        message: 'Record has been deletd.',
-                        variant: 'success',
-                    }),
-                    );
-                    this.openModal = false;
-                    //location.reload();
-                });
-                
+            this.deleteModal = true;
         }
     }
 }
