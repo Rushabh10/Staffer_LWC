@@ -2,10 +2,18 @@
     <lightning-button label="New record" title="new" icon-name="utility:add" class="slds-m-left_x-small" onclick={newRecord}></lightning-button>
     <br />
     <br />
-    <lightning-card title="Staffers" icon-name="standard:contact" >
+    <lightning-layout>
+        <lightning-layout-item size="4">
+            <lightning-card title="Staffers" icon-name="standard:contact" ></lightning-card>
+        </lightning-layout-item>
+        <lightning-layout-item size="6">
+            <lightning-input id="search_s" type="text" label="Search" onchange={searchDataTable} style="width:50%; left:350px"></lightning-input>
+        </lightning-layout-item>
+    </lightning-layout>
+    <br />
         <div style="width: auto;">
             <template if:true={data}>
-                <lightning-input id="search_s" type="text" label="Search" onchange={searchDataTable} style="width:35%; left:580px"></lightning-input>
+                <!-- <lightning-input id="search_s" type="text" label="Search" onchange={searchDataTable} style="width:35%; left:580px"></lightning-input> -->
                 <lightning-datatable id="dt_s" 
                                      data={data}
                                      columns={columns}
@@ -38,12 +46,20 @@
                 </lightning-layout-item>
             </lightning-layout>
         </div>
-    </lightning-card>
-    <lightning-card title="Former Staffers" icon-name="standard:contact" >
-        <br/>
+        <br />
+        <br />
+        <lightning-layout>
+            <lightning-layout-item size="4">
+                <lightning-card title="Staffers" icon-name="standard:contact" ></lightning-card>
+            </lightning-layout-item>
+            <lightning-layout-item size="6">
+                <lightning-input id="search_f" type="text" label="Search" onchange={searchDataTable} style="width:50%; left:350px"></lightning-input>
+            </lightning-layout-item>
+        </lightning-layout>
+        <br />
         <div style="width: auto;">
             <template if:true={data_f}>
-                <lightning-input id="search_f" type="text" label="Search" onchange={searchDataTable} style="width:35%; left:580px"></lightning-input>
+                <!-- <lightning-input id="search_f" type="text" label="Search" onchange={searchDataTable} style="width:35%; left:580px"></lightning-input> -->
                 <lightning-datatable id="dt_f"
                                      data={data_f}
                                      columns={columns}
@@ -74,7 +90,6 @@
                 </lightning-layout-item>
             </lightning-layout>
         </div>
-    </lightning-card>
     <template if:true={openModal}>
         <!-- Modal/Popup Box LWC starts here -->
         <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
